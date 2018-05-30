@@ -29,11 +29,17 @@ plot.f4stats <- function(x, sigma = 6, ...) {
   x$error_bar_end   <- with(x, D + sigma/2*stderr)
   x$test <- with(x, paste("D(",W,",",X,";",Y,",",Z,")"))
   x$test <- factor(x$test, levels=dplyr::arrange(x, D)$test)
-  
+  #absolute value for the z-score
+  x$Z.value = abs(x$Z.value)
   ggplot2::ggplot(x) +
     ggplot2::geom_hline(yintercept = 0, linetype = 'dashed', color = 'gray') +
     ggplot2::geom_errorbar(ggplot2::aes_string(x = 'test', ymin = 'error_bar_start', ymax = 'error_bar_end'), color='black') +
-    ggplot2::geom_point(ggplot2::aes_string(x = 'test', y = 'D'), color='black') +
+    #add a break point for evaluating the z-score
+    ggplot2::geom_point(ggplot2::aes_string(x = 'test', y = 'D', color=cut(x$Z.value,breaks = c(0, 3, Inf), right = TRUE))) +
+    #colouring
+    scale_color_manual(name = "z-score",
+                       values = c("black", "red"),
+                       labels = c("Z < |3|", "Z >= |3|")) + 
     ggplot2::xlab('') + ggplot2::ylab('') + 
     ggplot2::coord_flip() +
     ggplot2::theme_classic() +
